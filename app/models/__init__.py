@@ -1,5 +1,5 @@
 from .base import Base
-from .nodes import Note
+from .notes import Note
 from .sessions import StudySession
 from .subjects import Subject
 from .tasks import Task
