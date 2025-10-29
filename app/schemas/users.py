@@ -1,21 +1,12 @@
-from datetime import datetime
-from pydantic import BaseModel, ConfigDict, EmailStr
-from .subjects import SubjectRead
+from fastapi_users.schemas import BaseUser, BaseUserCreate
+
+from app.schemas.subjects import SubjectRead
 
 
-class UserBase(BaseModel):
-    email: EmailStr
-
-
-class UserCreate(UserBase):
-    password: str
-    username: str
-
-
-class UserRead(UserBase):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: int
-    username: str
-    created_at: datetime
+class UserRead(BaseUser[int]):
+    # Добавляем кастомное поле, которое будет в ответе API
     subjects: list[SubjectRead] = []
+
+
+class UserCreate(BaseUserCreate):
+    pass

@@ -1,5 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from bcrypt import gensalt, hashpw, checkpw
 from app.repositories.users import user_repository
@@ -27,10 +29,19 @@ class UserService:
 
         # 4. Передаем в репозиторий чистые данные
         user = await user_repository.create(db, user_data=create_data)
-        return UserRead.model_validate(user)
+        
+        # 5. Загружаем пользователя снова, но уже с жадной загрузкой subjects
+        # Это необходимо, чтобы Pydantic мог сериализовать UserRead без MissingGreenlet
+        statement = select(User).options(selectinload(User.subjects)).where(User.id == user.id)
+        loaded_user = (await db.execute(statement)).scalar_one_or_none()
+        
+        return UserRead.model_validate(loaded_user)
     
     async def get_user_by_id(self, db: AsyncSession, user_id: int) -> UserRead:
-        user = await user_repository.get(db, user_id)
+        # Загружаем пользователя с жадной загрузкой subjects
+        statement = select(User).options(selectinload(User.subjects)).where(User.id == user_id)
+        user = (await db.execute(statement)).scalar_one_or_none()
+        
         if not user:
             raise HTTPException(
                 status.HTTP_404_NOT_FOUND,
@@ -39,7 +50,10 @@ class UserService:
         return UserRead.model_validate(user)
     
     async def get_user_by_email(self, db: AsyncSession, email: str) -> UserRead:
-        user = await user_repository.get_by_email(db, email)
+        # Загружаем пользователя с жадной загрузкой subjects
+        statement = select(User).options(selectinload(User.subjects)).where(User.email == email)
+        user = (await db.execute(statement)).scalar_one_or_none()
+        
         if not user:
             raise HTTPException(
                 status.HTTP_404_NOT_FOUND,
@@ -48,7 +62,10 @@ class UserService:
         return UserRead.model_validate(user)
     
     async def get_multi_user(self, db: AsyncSession, *, skip: int = 0, limit: int = 100) -> list[UserRead]:
-        users = await user_repository.get_multi(db, skip = skip, limit = limit)
+        # Загружаем пользователей с жадной загрузкой subjects
+        statement = select(User).options(selectinload(User.subjects)).offset(skip).limit(limit)
+        users = (await db.execute(statement)).scalars().all()
+        
         if not users:
             raise HTTPException(
                 status.HTTP_404_NOT_FOUND,
