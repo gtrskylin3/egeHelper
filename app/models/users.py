@@ -12,7 +12,7 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     username: Mapped[str] = mapped_column(unique=True)
     email: Mapped[str] = mapped_column(index=True, unique=True)
-    password_hash: Mapped[str]
+    password_hash: Mapped[bytes]
     is_active: Mapped[bool] = mapped_column(server_default='true', default=True)
     is_admin: Mapped[bool] = mapped_column(server_default='false', default=False)
     created_at: Mapped[datetime] = mapped_column(

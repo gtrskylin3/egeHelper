@@ -3,9 +3,10 @@ from fastapi import Cookie, Depends, HTTPException, status
 from jwt import InvalidTokenError
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth import utils
-from app.schemas.users import UserScheme, UserRead
+from app.schemas.users import UserRead, UserScheme
 from app.auth.jwt_helpers import TOKEN_TYPE_FIELD, ACCESS_TOKEN_TYPE, REFRESH_TOKEN_TYPE
 from app.services.users import user_service
+from app.database.db import get_db
 
 
 def get_access_token_from_cookie(
@@ -96,14 +97,15 @@ async def get_user_from_payload(db: AsyncSession, payload: dict) -> UserRead:
         HTTPException: Если пользователь не найден
     """
 
-    user_id: int | None = payload.get("sub")
+    user_id_str: str | None = payload.get("sub")
 
-    if not user_id:
+    if not user_id_str:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token payload missing 'sub' field",
         )
-
+        
+    user_id = int(user_id_str)
     user = await user_service.get_user_by_id(db, user_id)
 
     if user is None:
@@ -115,9 +117,9 @@ async def get_user_from_payload(db: AsyncSession, payload: dict) -> UserRead:
 
 
 async def get_current_user_from_access_token(
-    db: AsyncSession,
     token: str = Depends(get_access_token_from_cookie),
-) -> UserRead:
+    db: AsyncSession = Depends(get_db),
+) -> UserScheme:
     """
     Полная цепочка валидации для access токена.
 
@@ -132,12 +134,13 @@ async def get_current_user_from_access_token(
     payload = decode_token(token)
     validate_token_type(payload, ACCESS_TOKEN_TYPE)
     user = await get_user_from_payload(db, payload)
-    return user
+    return UserScheme.model_validate(user)
 
 
 async def get_current_user_from_refresh_token(
-    db: AsyncSession, token: str = Depends(get_refresh_token_from_cookie)
-) -> UserRead:
+    token: str = Depends(get_refresh_token_from_cookie),
+    db: AsyncSession = Depends(get_db),
+) -> UserScheme:
     """
     Полная цепочка валидации для refresh токена.
 
@@ -152,4 +155,14 @@ async def get_current_user_from_refresh_token(
     payload = decode_token(token)
     validate_token_type(payload, REFRESH_TOKEN_TYPE)
     user = await get_user_from_payload(db, payload)
-    return user
+    return UserScheme.model_validate(user)
+    
+async def get_current_active_user(
+    user: UserScheme = Depends(get_current_user_from_access_token)
+) -> UserRead:
+    if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="User account is inactive"
+            )
+    return UserRead.model_validate(user)

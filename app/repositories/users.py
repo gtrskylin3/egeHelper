@@ -1,6 +1,6 @@
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.models.users import User
 from app.schemas.users import UserCreate
 
@@ -8,19 +8,19 @@ from app.schemas.users import UserCreate
 class UserRepository:
     async def get(self, db: AsyncSession, user_id: int) -> User | None:
         """Получение пользователя по ID."""
-        statement = select(User).where(User.id == user_id)
+        statement = select(User).options(selectinload(User.subjects)).where(User.id == user_id)
         result = await db.execute(statement)
         return result.scalar_one_or_none()
 
     async def get_by_email(self, db: AsyncSession, email: str) -> User | None:
         """Получение пользователя по email."""
-        statement = select(User).where(User.email == email)
+        statement = select(User).options(selectinload(User.subjects)).where(User.email == email)
         result = await db.execute(statement)
         return result.scalar_one_or_none()
     
     async def get_by_username(self, db: AsyncSession, username: str) -> User | None:
         """Получение пользователя по email."""
-        statement = select(User).where(User.username == username)
+        statement = select(User).options(selectinload(User.subjects)).where(User.username == username)
         result = await db.execute(statement)
         return result.scalar_one_or_none()
 
@@ -28,7 +28,7 @@ class UserRepository:
         self, db: AsyncSession, *, skip: int = 0, limit: int = 100
     ) -> list[User]:
         """Получение списка пользователей с пагинацией."""
-        statement = select(User).offset(skip).limit(limit)
+        statement = select(User).options(selectinload(User.subjects)).offset(skip).limit(limit)
         result = await db.execute(statement)
         return list(result.scalars().all())
 
@@ -38,7 +38,8 @@ class UserRepository:
         db.add(db_user)
         await db.commit()
         await db.refresh(db_user)
-        return db_user
+        statement = select(User).options(selectinload(User.subjects)).where(User.id == db_user.id)
+        return (await db.execute(statement)).scalar_one()
 
 
 user_repository = UserRepository()

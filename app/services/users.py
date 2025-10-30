@@ -1,9 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status, Form
 from app.auth import utils
-from bcrypt import gensalt, hashpw, checkpw
+from app.models.users import User
 from app.repositories.users import user_repository
-from app.schemas.users import UserCreate, UserRead
+from app.schemas.users import UserCreate, UserRead, UserScheme
 
 
 class UserService:
@@ -65,8 +65,8 @@ class UserService:
         return [UserRead.model_validate(user) for user in users]
 
     async def validate_user_credentials(
-        self, db: AsyncSession, username: str = Form(), password: str = Form()
-    ) -> UserRead:
+        self, db: AsyncSession, email: str = Form(), password: str = Form()
+    ) -> UserScheme:
         """
         Валидирует username и password при логине.
 
@@ -80,18 +80,18 @@ class UserService:
         Raises:
             HTTPException: Если credentials неверны или пользователь неактивен
         """
-        user = await user_repository.get_by_username(db, username)
+        user = await user_repository.get_by_email(db, email)
 
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid username or password",
+                detail="Invalid email or password",
             )
 
-        if not utils.validate_password(password, user.password_hash.encode()):
+        if not utils.validate_password(password, user.password_hash):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid username or password",
+                detail="Invalid emailor password",
             )
 
         if not user.is_active:
@@ -99,7 +99,7 @@ class UserService:
                 status_code=status.HTTP_403_FORBIDDEN, detail="User account is inactive"
             )
 
-        return UserRead.model_validate(user)
+        return UserScheme.model_validate(user)
 
 
 user_service = UserService()
