@@ -13,6 +13,8 @@ class User(Base):
     username: Mapped[str] = mapped_column(unique=True)
     email: Mapped[str] = mapped_column(index=True, unique=True)
     password_hash: Mapped[str]
+    is_active: Mapped[bool] = mapped_column(server_default='true', default=True)
+    is_admin: Mapped[bool] = mapped_column(server_default='false', default=False)
     created_at: Mapped[datetime] = mapped_column(
         default=datetime.now(timezone.utc)
     )

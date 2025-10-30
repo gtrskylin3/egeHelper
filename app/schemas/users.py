@@ -4,18 +4,19 @@ from .subjects import SubjectRead
 
 
 class UserBase(BaseModel):
+    username: str
     email: EmailStr
 
+class UserScheme(UserBase):
+    id: int
 
 class UserCreate(UserBase):
     password: str
-    username: str
 
 
 class UserRead(UserBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    username: str
     created_at: datetime
     subjects: list[SubjectRead] = []
