@@ -1,10 +1,7 @@
-from annotated_types import Annotated
 from fastapi import APIRouter, Depends, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.validation import (
     get_current_active_user,
-    get_user_from_payload,
-    get_current_user_from_access_token,
     get_current_user_from_refresh_token,
 )
 from app.auth.jwt_helpers import create_access_token, create_refresh_token
@@ -13,6 +10,7 @@ from app.services.users import user_service
 from fastapi.security import OAuth2PasswordRequestForm
 from app.database.db import get_db
 from app.config import settings
+from typing import Annotated
 
 sessionDep = Annotated[AsyncSession, Depends(get_db)]
 
@@ -105,4 +103,4 @@ async def validate_token(
     return {
         "valid": True,
         "user_id": user.id
-    }
+    } 

@@ -12,6 +12,10 @@ class SubjectBase(BaseModel):
 class SubjectCreate(SubjectBase):
     pass
 
+class SubjectUpdate(SubjectBase):
+    name: Optional[str] = None
+    color: Optional[str] = None
+
 
 class SubjectRead(SubjectBase):
     model_config = ConfigDict(from_attributes=True)

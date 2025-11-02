@@ -23,56 +23,6 @@ MVP должен быть минимально функциональным, н�
 6. Просмотр статистики: суммарное время по предмету/дате
 7. Экспорт дневных записей (CSV) — опция
 
----
-
-## 3. База данных — сущности
-
-**users**
-
-* id: UUID
-* email
-* password_hash
-* created_at
-
-**subjects**
-
-* id
-* user_id (FK)
-* name
-* color (опционально)
-* created_at
-
-**study_sessions**
-
-* id
-* user_id
-* subject_id (nullable)
-* started_at (datetime)
-* duration_minutes (int)
-* note (text)
-
-**notes**
-
-* id
-* user_id
-* subject_id (nullable)
-* date (date)
-* content (text)
-
-**tasks**
-
-* id
-* user_id
-* subject_id (nullable)
-* title
-* description
-* due_date (date nullable)
-* status (enum: todo, in_progress, done)
-* created_at
-
-ER: `User 1..* Subject`, `User 1..* StudySession`, `User 1..* Note`, `User 1..* Task`.
-
----
 
 ## 4. API спецификация (основные эндпоинты)
 
