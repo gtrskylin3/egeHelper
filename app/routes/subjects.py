@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.validation import (
     get_current_active_user
@@ -46,4 +46,3 @@ async def delete_subject(
     user: UserScheme = Depends(get_current_active_user)
 ):
     await subject_service.delete_subject(db, subject_id=subject_id, user_id=user.id)
-    return {'message': "Deleted successful"}

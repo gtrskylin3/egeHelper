@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
@@ -12,6 +12,7 @@ class StudySessionBase(BaseModel):
 class StudySessionCreate(StudySessionBase):
     subject_id: Optional[int] = None
     started_at: datetime
+    date: date
 
 
 class StudySessionRead(StudySessionBase):
@@ -21,3 +22,4 @@ class StudySessionRead(StudySessionBase):
     user_id: int
     subject_id: Optional[int] = None
     started_at: datetime
+    date: date

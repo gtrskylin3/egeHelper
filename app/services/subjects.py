@@ -12,16 +12,11 @@ class SubjectService:
         self, db: AsyncSession, *, subject_id: int, user_id: int
     ) -> Subject:
         """Получает предмет по ID и проверяет, что он принадлежит пользователю."""
-        subject = await subject_repository.get(db, subject_id=subject_id)
+        subject = await subject_repository.get(db, subject_id=subject_id, user_id=user_id)
         if not subject:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Subject not found",
-            )
-        if subject.user_id != user_id:
-            raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have permission to access this subject",
+                detail=f"is not subject for user with id {user_id}",
             )
         return subject
 
@@ -44,13 +39,12 @@ class SubjectService:
     async def update_subject(
         self, db: AsyncSession, subject_id: int, user_id: int, subject_in: SubjectUpdate
     ) -> Subject:
-        """Создает новый предмет для пользователя."""
-        is_owner = await subject_repository.is_owner(db, subject_id, user_id)
-        if not is_owner:
+        """Обновляет  предмет для пользователя."""
+        subject = await subject_repository.get(db, subject_id, user_id)
+        if not subject:
             raise HTTPException(status.HTTP_403_FORBIDDEN, detail="You can't update this")
-        
         updated = await subject_repository.update(
-            db, subject_in=subject_in, subject_id=subject_id
+            db, subject_in=subject_in, subject=subject
         )
         if not updated: 
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Subject not found")
@@ -61,10 +55,10 @@ class SubjectService:
         self, db: AsyncSession, *, subject_id: int, user_id: int
     ) -> bool:
         """Удаляет предмет для пользователя."""
-        is_owner = await subject_repository.is_owner(db, subject_id, user_id)
-        if not is_owner:
+        subject = await subject_repository.get(db, subject_id, user_id)
+        if not subject:
             raise HTTPException(status.HTTP_403_FORBIDDEN, detail=f"No have user subject with id {subject_id}")
-        await subject_repository.delete(db, subject_id)
+        await subject_repository.delete(db, subject)
         return True
 
 
