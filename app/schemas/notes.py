@@ -12,6 +12,9 @@ class NoteBase(BaseModel):
 class NoteCreate(NoteBase):
     subject_id: Optional[int] = None
 
+class NoteUpdate(BaseModel):
+    date: date | None
+    content: str | None = None
 
 class NoteRead(NoteBase):
     model_config = ConfigDict(from_attributes=True)
