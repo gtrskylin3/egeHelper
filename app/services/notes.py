@@ -16,18 +16,18 @@ class NoteService:
         Если указан subject_id, проверяет, что он существует и принадлежит пользователю.
         """
         if note_in.subject_id:
-            subject = await subject_repository.get(db, subject_id=note_in.subject_id, user_id=user_id)
+            subject = await subject_repository.get_by_id_and_user_id(db, id=note_in.subject_id, user_id=user_id)
             if not subject:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"Invalid subject_id: {note_in.subject_id}",
                 )
 
-        return await note_repository.create(db, note_in=note_in, user_id=user_id)
+        return await note_repository.create(db, obj_in=note_in, user_id=user_id)
 
     async def get_note(self, db: AsyncSession, *, note_id: int, user_id: int) -> Note:
         """Получает заметку по ID и проверяет владение."""
-        note = await note_repository.get(db, note_id=note_id, user_id=user_id)
+        note = await note_repository.get_by_id_and_user_id(db, id=note_id, user_id=user_id)
         if not note:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail=f"Note not with id {note_id} not found for user with id {user_id}"
@@ -38,11 +38,11 @@ class NoteService:
         self, db: AsyncSession, note_id: int, user_id: int, note_to_update: NoteUpdate
     ) -> Note:
         """Обновляет  предмет для пользователя."""
-        note = await note_repository.get(db, note_id, user_id)
+        note = await note_repository.get_by_id_and_user_id(db, note_id, user_id)
         if not note:
             raise HTTPException(status.HTTP_403_FORBIDDEN, detail="You can't update this")
         updated = await note_repository.update(
-            db, note_to_update=note_to_update, note=note
+            db, obj_in=note_to_update, db_obj=note
         )
         if not updated: 
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Note not found")
@@ -53,10 +53,10 @@ class NoteService:
         self, db: AsyncSession, *, note_id: int, user_id: int
     ) -> bool:
         """Удаляет предмет для пользователя."""
-        note = await note_repository.get(db, note_id, user_id)
+        note = await note_repository.get_by_id_and_user_id(db, note_id, user_id)
         if not note:
             raise HTTPException(status.HTTP_403_FORBIDDEN, detail=f"No have user note with id {note_id}")
-        await note_repository.delete(db, note=note)
+        await note_repository.delete(db, db_obj=note)
         return True
     
     async def get_notes_for_user_by_date(self, db: AsyncSession, user_id: int, date: date):

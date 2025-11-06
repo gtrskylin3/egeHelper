@@ -14,6 +14,12 @@ class TaskBase(BaseModel):
 class TaskCreate(TaskBase):
     subject_id: Optional[int] = None
 
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    due_date: Optional[date] = None
+    status: Optional[str] = None
+
 
 class TaskRead(TaskBase):
     model_config = ConfigDict(from_attributes=True)

@@ -14,6 +14,10 @@ class StudySessionCreate(StudySessionBase):
     started_at: datetime
     date: date
 
+class StudySessionUpdate(BaseModel):
+    duration_minutes: int | None
+    note: str | None
+
 
 class StudySessionRead(StudySessionBase):
     model_config = ConfigDict(from_attributes=True)

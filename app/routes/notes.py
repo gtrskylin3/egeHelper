@@ -15,7 +15,7 @@ sessionDep = Annotated[AsyncSession, Depends(get_db)]
 router = APIRouter(prefix="/api/notes")
 
 @router.post('/', response_model=NoteRead)
-async def create_session(
+async def create_note(
     db: sessionDep, 
     note_in: NoteCreate,
     user: UserScheme = Depends(get_current_active_user)
@@ -39,12 +39,12 @@ async def delete_note(
 ):
     await note_service.delete_note(db, note_id=note_id, user_id=user.id)
 
-@router.delete('/{note_id}', response_model=NoteRead)
+@router.put('/{note_id}', response_model=NoteRead)
 async def update_note(
     note_id: int,
     note_data: NoteUpdate,
     db: sessionDep,
     user: UserScheme = Depends(get_current_active_user)
 ):
-    await note_service.update_note(db, note_id=note_id, note_to_update=note_data, user_id=user.id)
+    return await note_service.update_note(db, note_id=note_id, note_to_update=note_data, user_id=user.id)
     

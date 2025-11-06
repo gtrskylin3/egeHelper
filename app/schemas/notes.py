@@ -12,7 +12,7 @@ class NoteBase(BaseModel):
 class NoteCreate(NoteBase):
     subject_id: Optional[int] = None
 
-class NoteUpdate(BaseModel):
+class NoteUpdate(NoteCreate):
     date: date | None
     content: str | None = None
 

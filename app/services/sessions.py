@@ -17,19 +17,18 @@ class StudySessionService:
         Создает учебную сессию.
         """
         if session_in.subject_id:
-            subject = await subject_repository.get(db, subject_id=session_in.subject_id, user_id=user_id)
+            subject = await subject_repository.get_by_id_and_user_id(db, id=session_in.subject_id, user_id=user_id)
             if not subject:
                 raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Invalid subject_id: {session_in.subject_id}",
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Subject with id {session_in.subject_id} not found for this user",
                 )
         return await session_repository.create(
-            db, session_in=session_in, user_id=user_id
+            db, obj_in=session_in, user_id=user_id
         )
 
     async def get_user_stats(self, db: AsyncSession, *, user_id: int) -> dict:
         """Собирает статистику по времени обучения для пользователя."""
-        # Получаем все сессии и все предметы пользователя
         sessions = await session_repository.get_by_user(db, user_id=user_id, limit=10000)
         subjects = await subject_repository.get_by_user(db, user_id=user_id, limit=1000)
         subject_map = {subject.id: subject.name for subject in subjects}
@@ -47,18 +46,17 @@ class StudySessionService:
 
         return {
             "total_minutes": total_minutes,
-            "by_subject": dict(by_subject), # Преобразуем в обычный dict для JSON
+            "by_subject": dict(by_subject),
         }
-    
+
     async def get_sessions_for_user_by_date(self, db: AsyncSession, user_id: int, date: datetime.date):
         return await session_repository.get_by_user_and_date(db, user_id=user_id, date=date)
-    
-    async def delete_session(self, db: AsyncSession, user_id: int, session_id: int) -> bool:
-        session = await session_repository.get(db, session_id, user_id)
-        if not session:
-            raise HTTPException(status.HTTP_404_NOT_FOUND, detail=f"No have user session with id {session_id}")
-        await session_repository.delete(db, session=session)
-        return True
-    
+
+    async def delete_session(self, db: AsyncSession, *, user_id: int, session_id: int):
+        db_obj = await session_repository.get_by_id_and_user_id(db, id=session_id, user_id=user_id)
+        if not db_obj:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Session with id {session_id} not found")
+        await session_repository.delete(db, db_obj=db_obj)
+
 
 session_service = StudySessionService()

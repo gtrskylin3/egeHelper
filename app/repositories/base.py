@@ -2,7 +2,7 @@ from typing import Type, TypeVar, Generic
 from sqlalchemy import select
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.base import Base
+from app.models import Base
 
 ModelType = TypeVar('ModelType', bound=Base)
 Create = TypeVar('Create', bound=BaseModel)
@@ -20,6 +20,13 @@ class BaseRepository(Generic[ModelType, Create, Update]):
         statement = select(self.model).where(self.model.id == id)
         result = await db.execute(statement)
         return result.scalar_one_or_none()
+        
+    async def get_by_user(
+        self, db: AsyncSession, *, user_id: int, skip: int = 0, limit: int = 100
+    ) -> list[ModelType]:
+        statement = select(self.model).where(self.model.user_id == user_id).offset(skip).limit(limit)
+        result = await db.execute(statement)
+        return list(result.scalars().all())
 
     async def get_by_id_and_user_id(self, db: AsyncSession, id: int, user_id: int) -> ModelType | None:
         statement = select(self.model).where(self.model.id == id, self.model.user_id == user_id)
@@ -42,7 +49,7 @@ class BaseRepository(Generic[ModelType, Create, Update]):
         obj_in: Update,
         db_obj: ModelType,
     ) -> ModelType:
-        update_data = obj_in.model_dump(exclude_unset=True)
+        update_data = obj_in.model_dump(exclude_unset=True, exclude_none=True)
         for field, value in update_data.items():
             if hasattr(db_obj, field):
                 setattr(db_obj, field, value)
