@@ -10,6 +10,11 @@ class TaskBase(BaseModel):
     due_date: Optional[date] = None
     status: str = "todo"
 
+class TaskFilter(BaseModel):
+    due_date_from: Optional[date]
+    due_date_to: Optional[date]
+    status: Optional[str]
+    subject_id: Optional[int]
 
 class TaskCreate(TaskBase):
     subject_id: Optional[int] = None
