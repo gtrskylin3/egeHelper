@@ -22,7 +22,7 @@ class BaseRepository(Generic[ModelType, Create, Update]):
         return result.scalar_one_or_none()
         
     async def get_by_user(
-        self, db: AsyncSession, *, user_id: int, skip: int = 0, limit: int = 100
+        self, db: AsyncSession, *, user_id: int, skip: int | None = 0, limit: int | None = 100
     ) -> list[ModelType]:
         statement = select(self.model).where(self.model.user_id == user_id).offset(skip).limit(limit)
         result = await db.execute(statement)

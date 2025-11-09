@@ -6,7 +6,8 @@ from app.routes import (
     subjects_router, 
     sessions_router,
     notes_router, 
-    tasks_router
+    tasks_router,
+    stats_router
 )
 
 app = FastAPI(
@@ -36,6 +37,11 @@ app.include_router(
 app.include_router(
     tasks_router,
     tags=['tasks']
+)
+
+app.include_router(
+    stats_router,
+    tags=['stats']
 )
 
 if __name__ == '__main__':

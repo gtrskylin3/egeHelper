@@ -3,7 +3,7 @@ from .subjects import router as subjects_router
 from .sessions import router as sessions_router
 from .notes import router as notes_router
 from .tasks import router as tasks_router
-# from . import router
+from .stats import router as stats_router
 # from . import router
 
 __all__ = [
@@ -11,5 +11,6 @@ __all__ = [
     'subjects_router',
     'sessions_router',
     'notes_router',
-    'tasks_router'
+    'tasks_router',
+    'stats_router'
 ]

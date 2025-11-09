@@ -25,17 +25,10 @@ async def create_session(
 @router.get('/', response_model=list[StudySessionRead])
 async def get_user_sessions(
     db: sessionDep,
-    date: date,
+    date: date = date.today(),
     user: UserScheme = Depends(get_current_active_user),
 ):
     return await session_service.get_sessions_for_user_by_date(db, user_id=user.id, date=date)
-
-@router.get('/stats')
-async def stats_session(
-    db: sessionDep,
-    user: UserScheme = Depends(get_current_active_user)
-):
-    return await session_service.get_user_stats(db, user_id=user.id)
 
 @router.delete('/{session_id}', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_session(

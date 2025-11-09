@@ -27,7 +27,7 @@ class UserService:
         # 4. Передаем в репозиторий чистые данные
         user = await user_repository.create(db, user_data=create_data)
         return UserRead.model_validate(user)
-
+        
     async def get_user_by_id(self, db: AsyncSession, user_id: int) -> UserRead:
         user = await user_repository.get(db, user_id)
         if not user:

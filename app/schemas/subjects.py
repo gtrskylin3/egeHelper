@@ -12,7 +12,7 @@ class SubjectBase(BaseModel):
 class SubjectCreate(SubjectBase):
     pass
 
-class SubjectUpdate(SubjectBase):
+class SubjectUpdate(BaseModel):
     name: Optional[str] = None
     color: Optional[str] = None
 
